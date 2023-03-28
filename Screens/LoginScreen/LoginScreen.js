@@ -16,6 +16,8 @@ const initialState = {
   password: "",
 };
 
+import { Feather } from "@expo/vector-icons";
+
 export default function Login({ navigation }) {
   const [user, setUser] = useState(initialState);
   const [isHidePasw, setIsHidePasw] = useState(true);
@@ -62,7 +64,7 @@ export default function Login({ navigation }) {
                 width: dimensions,
               }}
             >
-              <Text style={styles.title}>Ввійти</Text>
+              <Text style={styles.title}>Увійти</Text>
               <View>
                 <TextInput
                   value={user.email}
@@ -86,7 +88,11 @@ export default function Login({ navigation }) {
                   }
                 />
                 <TouchableOpacity onPress={ToggleSecure} style={styles.showPsw}>
-                  <Text>Показати</Text>
+                  {isHidePasw ? (
+                    <Feather name="eye" size={24} color="#c0c0c0" />
+                  ) : (
+                    <Feather name="eye-off" size={24} color="#c0c0c0" />
+                  )}
                 </TouchableOpacity>
               </View>
               {!isOnFocus && (
@@ -99,15 +105,13 @@ export default function Login({ navigation }) {
                 </TouchableOpacity>
               )}
               {!isOnFocus && (
-                <TouchableOpacity
-                  activeOpacity={0.8}
+                <Text
+                  style={styles.linkToReg}
                   onPress={() => navigation.navigate("Registration")}
                 >
-                  <Text style={styles.linkToReg}>
-                    Немає акаунта?
-                    <Text style={styles.link}> Зареєструватися</Text>
-                  </Text>
-                </TouchableOpacity>
+                  Немає акаунта?
+                  <Text style={styles.link}> Зареєструватися</Text>
+                </Text>
               )}
             </View>
           </KeyboardAvoidingView>
@@ -158,8 +162,8 @@ const styles = StyleSheet.create({
     fontFamily: "QR",
   },
   showPsw: {
-    top: 17,
-    left: 260,
+    top: 15,
+    left: 290,
     position: "absolute",
   },
   btn: {

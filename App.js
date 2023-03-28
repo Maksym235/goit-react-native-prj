@@ -1,17 +1,18 @@
-import { useCallback } from "react";
-
+// ------DEFAULT------------------
+import { View, SafeAreaView } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
-import Registration from "./Screens/RegistrationScreen/RegistrationScreen";
-import Login from "./Screens/LoginScreen/LoginScreen";
+//--------FONTS------------
+import { useCallback } from "react";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 
+import { useRoute } from "./Router";
+
 SplashScreen.preventAutoHideAsync();
 
-const MainStack = createStackNavigator();
-
 export default function App() {
+  const routing = useRoute(true);
+
   const [fontsLoaded] = useFonts({
     QR: require("./assets/fonts/Quicksand-Regular.ttf"),
   });
@@ -26,11 +27,8 @@ export default function App() {
     return null;
   }
   return (
-    <NavigationContainer onLayout={onLayoutRootView}>
-      <MainStack.Navigator initialRouteName="Registration">
-        <MainStack.Screen name="Registration" component={Registration} />
-        <MainStack.Screen name="Login" component={Login} />
-      </MainStack.Navigator>
-    </NavigationContainer>
+    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+      <NavigationContainer>{routing}</NavigationContainer>
+    </View>
   );
 }

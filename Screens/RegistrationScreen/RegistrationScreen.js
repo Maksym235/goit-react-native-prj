@@ -11,6 +11,7 @@ import {
   ImageBackground,
   KeyboardAvoidingView,
 } from "react-native";
+import { Feather } from "@expo/vector-icons";
 
 const initialState = {
   login: "",
@@ -19,8 +20,8 @@ const initialState = {
 };
 
 export default function Registration({ navigation }) {
+  // -----------STATE---------------------
   const [dimensions, setDimensions] = useState(Dimensions.get("window").width);
-
   const [isOnFocus, setIsOnFocus] = useState(false);
   const [isHidePasw, setIsHidePasw] = useState(true);
   const [newUser, setNewUser] = useState(initialState);
@@ -35,6 +36,7 @@ export default function Registration({ navigation }) {
     Dimensions.addEventListener("change", onChange);
   }, []);
 
+  //--------FUNCTIONS--------------
   const KeyboardHide = () => {
     setIsOnFocus(false);
     Keyboard.dismiss();
@@ -98,7 +100,11 @@ export default function Registration({ navigation }) {
                   }
                 />
                 <TouchableOpacity onPress={ToggleSecure} style={styles.showPsw}>
-                  <Text>Показати</Text>
+                  {isHidePasw ? (
+                    <Feather name="eye" size={24} color="#c0c0c0" />
+                  ) : (
+                    <Feather name="eye-off" size={24} color="#c0c0c0" />
+                  )}
                 </TouchableOpacity>
               </View>
 
@@ -112,9 +118,13 @@ export default function Registration({ navigation }) {
                 </TouchableOpacity>
               )}
               {!isOnFocus && (
-                <TouchableOpacity activeOpacity={0.8} onPress>
-                  <Text>Вже є акаунт? Ввійти</Text>
-                </TouchableOpacity>
+                <Text
+                  style={styles.linkToReg}
+                  onPress={() => navigation.navigate("Login")}
+                >
+                  Вже є акаунт?
+                  <Text style={styles.link}>Увійти</Text>
+                </Text>
               )}
             </View>
           </KeyboardAvoidingView>
@@ -143,6 +153,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 16,
+    borderTopRightRadius: 25,
+    borderTopLeftRadius: 25,
   },
   image: {
     top: -50,
@@ -172,8 +184,8 @@ const styles = StyleSheet.create({
     fontFamily: "QR",
   },
   showPsw: {
-    top: 17,
-    left: 260,
+    top: 15,
+    left: 290,
     position: "absolute",
   },
   button: {
@@ -189,5 +201,12 @@ const styles = StyleSheet.create({
   btnTitle: {
     color: "#fff",
     fontFamily: "QR",
+  },
+  linkToReg: {
+    fontFamily: "QR",
+    color: "#1B4371",
+  },
+  link: {
+    color: "#0E7DFD",
   },
 });
