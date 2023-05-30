@@ -1,9 +1,9 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createStackNavigator } from "@react-navigation/stack";
 
 // --------COMPONENTS---------------
-import { LogOutBtn } from "./components/logOutBtn";
+import { LogOutBtn } from "./components/LogOutBtn";
 
 // -------- SCREENS------------------
 import Registration from "./Screens/RegistrationScreen/RegistrationScreen";
@@ -17,10 +17,10 @@ import { Octicons } from "@expo/vector-icons";
 import { FontAwesome } from "@expo/vector-icons";
 import { Ionicons } from "@expo/vector-icons";
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-export const useRoute = (isAuth) => {
+const useRoute = (isAuth) => {
   if (!isAuth) {
     return (
       <Stack.Navigator initialRouteName="Login">
@@ -81,3 +81,4 @@ export const useRoute = (isAuth) => {
     </Tab.Navigator>
   );
 };
+export default useRoute;

@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { Camera } from "expo-camera";
 import {
   View,
   Text,
@@ -10,43 +11,137 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  Button,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import * as Location from "expo-location";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getFirestore, collection, addDoc } from "firebase/firestore";
+import db from "../../firebase/config";
+import app from "../../firebase/config";
+import { selectUserName, selectUserId } from "../../redux/selectors";
+import { useSelector } from "react-redux";
 
-const CreatePostsScreen = () => {
+const storage = getStorage(db);
+const getPost = getFirestore(app);
+
+const CreatePostsScreen = ({ navigation }) => {
   const [title, setTitle] = useState("");
-  const [location, setLocation] = useState("");
-  const [imageUri, setImageUri] = useState(null);
+  const [location, setLocation] = useState(null);
+  const [locationTitle, setLocationTitle] = useState("");
+  // const [imageUri, setImageUri] = useState(null);
   const [isOnFocus, setIsOnFocus] = useState(false);
+  const [snap, setSnap] = useState(null);
+  const [photo, setPhoto] = useState(null);
+  const [permission, requestPermission] = Camera.useCameraPermissions();
 
-  const handleChoosePhoto = () => {
-    // Діалогове вікно вибору фото з галереї або камери
+  const name = useSelector(selectUserName);
+  const userId = useSelector(selectUserId);
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setErrorMsg("Permission to access location was denied");
+        return;
+      }
+
+      // let location = await Location.getCurrentPositionAsync({});
+      // setLocation(location);
+    })();
+  }, []);
+
+  const handleChoosePhoto = async () => {
+    const photo = await snap.takePictureAsync();
+    const location = await Location.getCurrentPositionAsync();
+    setLocation(location);
+    setPhoto(photo.uri);
   };
 
   const handleCreatePost = () => {
-    // Функція для створення нової публікації з даними зі стану компонента
+    uploadPostToServer();
+    navigation.navigate("DefutlScreen");
+    //  {
+    //   title,
+    //   location,
+    //   photo,
+    //   locationTitle,
+    // }
+  };
+
+  const uploadPostToServer = async () => {
+    try {
+      const photo = await uploadPhotoToServer();
+      await addDoc(collection(getPost, "posts"), {
+        photo,
+        title,
+        location,
+        locationTitle,
+        name,
+        userId,
+      });
+    } catch (error) {
+      console.log(error.massage);
+    }
+  };
+
+  const uploadPhotoToServer = async () => {
+    const response = await fetch(photo);
+
+    const file = await response.blob();
+
+    const uniquePostId = Date.now().toString();
+
+    const storageRef = ref(storage, `postImage/${uniquePostId}`);
+    await uploadBytes(storageRef, file);
+    const getStorageRef = await getDownloadURL(storageRef);
+    return getStorageRef;
   };
 
   const KeyboardHide = () => {
     setIsOnFocus(false);
     Keyboard.dismiss();
   };
+  if (!permission) {
+    // Camera permissions are still loading
+    return <View />;
+  }
+
+  if (!permission.granted) {
+    // Camera permissions are not granted yet
+    return (
+      <View style={styles.container}>
+        <Text style={{ textAlign: "center" }}>
+          We need your permission to show the camera
+        </Text>
+        <Button onPress={requestPermission} title="grant permission" />
+      </View>
+    );
+  }
 
   return (
     <TouchableWithoutFeedback onPress={KeyboardHide}>
       <View style={styles.container}>
-        <TouchableOpacity
-          style={styles.photoContainer}
-          onPress={handleChoosePhoto}
-        >
-          {imageUri ? (
-            <Image source={{ uri: imageUri }} style={styles.photo} />
-          ) : (
-            <Text style={styles.choosePhoto}>Вибрати фото</Text>
-          )}
-        </TouchableOpacity>
         <KeyboardAvoidingView
+          style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
+          <View style={styles.photoContainer}>
+            <Camera style={styles.camera} ref={setSnap}>
+              {photo && (
+                <View style={styles.takePhoto}>
+                  <Image
+                    source={{ uri: photo }}
+                    style={{ height: 150, width: 200 }}
+                  />
+                </View>
+              )}
+              <TouchableOpacity style={styles.snap} onPress={handleChoosePhoto}>
+                <Ionicons name="md-camera" size={40} color="#fff" />
+              </TouchableOpacity>
+            </Camera>
+          </View>
+
           <View>
             <TextInput
               style={styles.titleInput}
@@ -57,24 +152,25 @@ const CreatePostsScreen = () => {
 
             <TextInput
               style={styles.titleInput}
-              value={location}
-              onChangeText={setLocation}
-              placeholder="місце"
+              value={locationTitle}
+              onChangeText={setLocationTitle}
+              placeholder="Назва місця"
             />
           </View>
+
+          {!isOnFocus && (
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={{
+                ...styles.createButton,
+                backgroundColor: title && locationTitle ? "#FF6C00" : "#F6F6F6",
+              }}
+              onPress={handleCreatePost}
+            >
+              <Text style={styles.createButtonText}>Опублікувати</Text>
+            </TouchableOpacity>
+          )}
         </KeyboardAvoidingView>
-        {!isOnFocus && (
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={{
-              ...styles.createButton,
-              backgroundColor: title && location ? "#FF6C00" : "#F6F6F6",
-            }}
-            onPress={handleCreatePost}
-          >
-            <Text style={styles.createButtonText}>Опублікувати</Text>
-          </TouchableOpacity>
-        )}
       </View>
     </TouchableWithoutFeedback>
   );
@@ -97,10 +193,29 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     borderRadius: 5,
     width: "100%",
-    aspectRatio: 1,
+    height: 230,
     justifyContent: "center",
-    alignItems: "center",
+
     marginBottom: 20,
+  },
+  camera: {
+    height: 230,
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
+  snap: {
+    borderWidth: 2,
+    borderColor: "#fff",
+    borderRadius: 50,
+    marginBottom: 20,
+    padding: 5,
+  },
+  takePhoto: {
+    position: "absolute",
+    top: 5,
+    left: 70,
+    borderColor: "#fff",
+    borderWidth: 1,
   },
   photo: {
     width: "100%",

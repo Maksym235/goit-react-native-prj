@@ -1,7 +1,53 @@
-import { View, Text, ImageBackground, Image, StyleSheet } from "react-native";
-import { LogOutBtn } from "../../components/logOutBtn";
+import { LogOutBtn } from "../../components/LogOutBtn";
+import { authSingOutUser } from "../../redux/auth/authOperation";
+import { PostItem } from "../../components/PostItem";
+import { useFocusEffect } from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux";
+import React, { useState } from "react";
+import app from "../../firebase/config";
+import {
+  View,
+  StyleSheet,
+  Text,
+  FlatList,
+  Image,
+  ImageBackground,
+  TouchableOpacity,
+} from "react-native";
+import {
+  collection,
+  query,
+  where,
+  getFirestore,
+  getDocs,
+} from "firebase/firestore";
+
+const db = getFirestore(app);
 
 export default function ProfileScreen() {
+  const dispatch = useDispatch();
+  const [userPosts, setUserPosts] = useState([]);
+  const { userId, name } = useSelector((state) => state.auth);
+
+  const getUserPosts = async () => {
+    const q = query(collection(db, "posts"), where("userId", "==", userId));
+    const querySnapshot = await getDocs(q);
+    const userPost = [];
+    querySnapshot.forEach((doc) => {
+      userPost.push({ ...doc.data(), id: doc.id });
+    });
+    setUserPosts(userPost);
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      getUserPosts();
+    }, [])
+  );
+
+  const signOut = () => {
+    dispatch(authSingOutUser());
+  };
   return (
     <View style={styles.conteiner}>
       <ImageBackground
@@ -10,10 +56,15 @@ export default function ProfileScreen() {
       >
         <View style={styles.profile}>
           <View style={styles.btn}>
-            <LogOutBtn />
+            <LogOutBtn signOut={signOut} />
           </View>
           <View style={styles.image}></View>
-          <Text style={styles.title}>Name</Text>
+          <Text style={styles.title}>{name}</Text>
+          <FlatList
+            data={userPosts}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <PostItem item={item} />}
+          />
         </View>
       </ImageBackground>
     </View>

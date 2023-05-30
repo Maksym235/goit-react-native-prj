@@ -1,18 +1,19 @@
 // ------DEFAULT------------------
-import { View, SafeAreaView } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
+import { View } from "react-native";
+import Main from "./components/Main";
+
 //--------FONTS------------
 import { useCallback } from "react";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 
-import { useRoute } from "./Router";
+//-----------REDUX----------------
+import { Provider } from "react-redux";
+import { store } from "./redux/store";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
-  const routing = useRoute(true);
-
   const [fontsLoaded] = useFonts({
     QR: require("./assets/fonts/Quicksand-Regular.ttf"),
   });
@@ -27,8 +28,10 @@ export default function App() {
     return null;
   }
   return (
-    <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
-      <NavigationContainer>{routing}</NavigationContainer>
-    </View>
+    <Provider store={store}>
+      <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
+        <Main />
+      </View>
+    </Provider>
   );
 }

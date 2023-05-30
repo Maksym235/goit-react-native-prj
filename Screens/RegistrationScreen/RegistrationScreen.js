@@ -13,6 +13,9 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 
+import { authSingUpUser } from "../../redux/auth/authOperation";
+import { useDispatch } from "react-redux";
+
 const initialState = {
   login: "",
   email: "",
@@ -25,6 +28,8 @@ export default function Registration({ navigation }) {
   const [isOnFocus, setIsOnFocus] = useState(false);
   const [isHidePasw, setIsHidePasw] = useState(true);
   const [newUser, setNewUser] = useState(initialState);
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const onChange = () => {
@@ -43,8 +48,8 @@ export default function Registration({ navigation }) {
   };
 
   const onSubmit = () => {
-    console.log(newUser);
-    setNewUser(initialState);
+    dispatch(authSingUpUser(newUser));
+    // setNewUser(initialState);
   };
   const ToggleSecure = () => {
     setIsHidePasw((prev) => !prev);
@@ -75,18 +80,18 @@ export default function Registration({ navigation }) {
                 style={styles.input}
                 placeholder="Логін"
                 onFocus={() => setIsOnFocus(true)}
-                onChangeText={(value) =>
-                  setNewUser((prev) => ({ ...prev, login: value }))
-                }
+                onChangeText={(value) => {
+                  setNewUser((prev) => ({ ...prev, login: value }));
+                }}
               />
               <TextInput
                 value={newUser.email}
                 style={styles.input}
                 placeholder="Електрона адреса"
                 onFocus={() => setIsOnFocus(true)}
-                onChangeText={(value) =>
-                  setNewUser((prev) => ({ ...prev, email: value }))
-                }
+                onChangeText={(value) => {
+                  setNewUser((prev) => ({ ...prev, email: value }));
+                }}
               />
               <View>
                 <TextInput
@@ -95,9 +100,9 @@ export default function Registration({ navigation }) {
                   style={styles.input}
                   placeholder="Пароль"
                   onFocus={() => setIsOnFocus(true)}
-                  onChangeText={(value) =>
-                    setNewUser((prev) => ({ ...prev, password: value }))
-                  }
+                  onChangeText={(value) => {
+                    setNewUser((prev) => ({ ...prev, password: value }));
+                  }}
                 />
                 <TouchableOpacity onPress={ToggleSecure} style={styles.showPsw}>
                   {isHidePasw ? (

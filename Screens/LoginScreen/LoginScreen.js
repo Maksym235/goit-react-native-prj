@@ -11,6 +11,9 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { useState, useEffect } from "react";
+// import { authSingIn } from "../../redux/auth/authOperation";
+import { authSingInUser } from "../../redux/auth/authOperation";
+import { useDispatch } from "react-redux";
 const initialState = {
   email: "",
   password: "",
@@ -24,10 +27,11 @@ export default function Login({ navigation }) {
   const [isOnFocus, setIsOnFocus] = useState(false);
   const [dimensions, setDimensions] = useState(Dimensions.get("window").width);
 
+  const dispatch = useDispatch();
+
   useEffect(() => {
     const onChange = () => {
       const width = Dimensions.get("window").width;
-      console.log(width);
       setDimensions(width);
     };
 
@@ -39,8 +43,8 @@ export default function Login({ navigation }) {
     Keyboard.dismiss();
   };
   const onSubmit = () => {
-    console.log(user);
     setUser(initialState);
+    dispatch(authSingInUser(user));
   };
 
   const ToggleSecure = () => {
