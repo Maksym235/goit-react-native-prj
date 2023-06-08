@@ -9,9 +9,6 @@ import {
 } from "firebase/auth";
 
 import { updateUserProfile, authStateChange, authSignOut } from "./authReduser";
-// import { authSlice } from "./authReduser";
-
-// const { updateUserProfile, authStateChange, authSignOut } = authSlice.actions;
 
 const auth = getAuth(db);
 // console.log(auth.currentUser.uid)
@@ -36,6 +33,7 @@ const authSingUpUser =
         })
       );
     } catch (error) {
+      alert(error.message);
       console.log("error.message", error.message);
     }
   };
@@ -45,77 +43,43 @@ const authSingInUser =
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
-      console.log("error.message", error.message);
+      if (
+        error.code === "auth/invalid-email" ||
+        error.code === "auth/invalid-password"
+      ) {
+        alert("Invalid email or password");
+      }
+      console.log("error.message", error.message, error.code);
     }
   };
 const authSingOutUser = () => async (dispatch, getState) => {
-  await signOut(auth);
-  dispatch(authSignOut());
+  try {
+    await signOut(auth);
+    dispatch(authSignOut());
+  } catch (error) {
+    console.log("error.message", error.message);
+    alert(error.message);
+  }
 };
 
 const authStateChangeUser = () => async (dispatch, getState) => {
-  await auth.onAuthStateChanged((user) => {
-    if (user) {
-      const userUpdateProfile = {
-        name: user.displayName,
-        userId: user.uid,
-        email: user.email,
-      };
+  try {
+    await auth.onAuthStateChanged((user) => {
+      if (user) {
+        const userUpdateProfile = {
+          name: user.displayName,
+          userId: user.uid,
+          email: user.email,
+        };
 
-      dispatch(authStateChange({ stateChange: true }));
-      dispatch(updateUserProfile(userUpdateProfile));
-    }
-  });
+        dispatch(authStateChange({ stateChange: true }));
+        dispatch(updateUserProfile(userUpdateProfile));
+      }
+    });
+  } catch (error) {
+    console.log("error.message", error.message);
+    alert(error.message);
+  }
 };
 
 export { authSingInUser, authSingUpUser, authSingOutUser, authStateChangeUser };
-
-// import {
-//   createUserWithEmailAndPassword,
-//   signInWithEmailAndPassword,
-//   onAuthStateChanged,
-//   updateProfile,
-// } from "firebase/auth";
-// import { auth } from "../../firebase/config";
-// import { updateUserProfile, authStateChange } from "./authReduser";
-// import { onChange } from "react-native-reanimated";
-
-// export const authSingUp = async ({ login, email, password }) => {
-//   try {
-//     await createUserWithEmailAndPassword(auth, login, email, password);
-//   } catch (error) {
-//     throw error;
-//   }
-// };
-
-// export const AuthStateChanged = async (dispatch) => {
-//   try {
-//     onAuthStateChanged((user) => {
-//       dispatch(authStateChange({ stateChange: true }));
-//     });
-//   } catch (error) {
-//     console.log(error.message);
-//     throw error;
-//   }
-// };
-
-// export const authLogIn = async ({ email, password }) => {
-//   try {
-//     const credentials = await signInWithEmailAndPassword(auth, email, password);
-//   } catch (error) {
-//     console.log(error.message);
-//     throw error;
-//   }
-// };
-
-// export const AuthupdateProfile = async (update) => {
-//   const user = auth.currentUser;
-//   if (user) {
-//     try {
-//       await updateProfile(user, update);
-//     } catch (error) {
-//       console.log(error.message);
-//       throw error;
-//     }
-//   }
-// };

@@ -1,6 +1,12 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createStackNavigator } from "@react-navigation/stack";
+import { ActivityIndicator } from "react-native";
+
+// --------REDUX---------------------
+import { useDispatch, useSelector } from "react-redux";
+import { authSingOutUser } from "./redux/auth/authOperation";
+import { selectIsLogedIn } from "./redux/selectors";
 
 // --------COMPONENTS---------------
 import { LogOutBtn } from "./components/LogOutBtn";
@@ -21,6 +27,11 @@ const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const useRoute = (isAuth) => {
+  const isLoagedIn = useSelector(selectIsLogedIn);
+  const dispatch = useDispatch();
+  const signOut = () => {
+    dispatch(authSingOutUser());
+  };
   if (!isAuth) {
     return (
       <Stack.Navigator initialRouteName="Login">
@@ -38,12 +49,15 @@ const useRoute = (isAuth) => {
       </Stack.Navigator>
     );
   }
+  if (!isLoagedIn) {
+    <ActivityIndicator />;
+  }
   return (
     <Tab.Navigator initialRouteName="PostScreen">
       <Tab.Screen
         options={{
           headerRight: () => {
-            return <LogOutBtn onPress />;
+            return <LogOutBtn signOut={signOut} />;
           },
           headerTitle: "Публікації",
           tabBarShowLabel: false,
